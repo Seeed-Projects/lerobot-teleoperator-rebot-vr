@@ -147,7 +147,23 @@ Use `--dry-run` to validate configuration or `--startup-zero-test` for a low-spe
 | Trigger | Control the corresponding gripper independently |
 | Right A / Left X | Return the corresponding arm to its initial pose |
 | Right B / Left Y | Return the corresponding arm to zero and close its gripper |
+| Left Menu | Recording program only: start / stop and save an episode |
 | Ctrl+C | Return to zero on normal exit; press again to abort the return. This is not a hardware emergency stop |
+
+## Data Recording
+
+Supports **one RS arm and two USB cameras (main/wrist)**. Images, joint states, actions, and task instructions are saved in **LeRobot v3** format at 25 FPS by default.
+
+Press **Left Menu** to start / stop and save; wait for `SAVED`. B returns to zero without interrupting recording. `Ctrl+C` discards an unsaved episode.
+
+Output: `recordings/RS_task_datetime/`. `data/` contains joint states, actions, and timestamps (Parquet); `videos/` contains both camera streams (MP4); `meta/` contains tasks, robot details, recording times, and statistics.
+
+Set camera paths, CAN port, and the calibrated robot ID in [config/record_rs.yaml](config/record_rs.yaml). With the LeRobot environment active, run from this project's root:
+
+```bash
+uv pip install -e '.[record]'
+rebot-vr-record --config config/record_rs.yaml --task "Stack the green block on the blue block"
+```
 
 ## Operating Notes
 

@@ -53,20 +53,25 @@ def main() -> None:
 class ArmRuntime:
     """One arm's closed-loop runner; a dual session owns signals and VR input."""
 
-    def __init__(self, args, *, session=None, arm_id=None):
+    def __init__(self, args, *, session=None, arm_id=None, observer=None):
         self.args = args
         self.session = session
         self.arm_id = arm_id
+        self.observer = observer
 
     def run(self):
         try:
-            _run_arm(self.args, session=self.session, arm_id=self.arm_id)
+            options = {} if self.observer is None else {"observer": self.observer}
+            _run_arm(self.args, session=self.session, arm_id=self.arm_id, **options)
         finally:
             if self.session is not None:
                 self.session.arm_finished(self.arm_id)
 
 
-def _run_arm(args, *, session=None, arm_id=None) -> None:
+def _run_arm(args, *, session=None, arm_id=None, observer=None) -> None:
+    if observer is not None:
+        from .observer import GuardedObserver
+        observer = GuardedObserver(observer)
     logging.basicConfig(
         level=getattr(logging, args.log_level),
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -282,7 +287,8 @@ def _run_arm(args, *, session=None, arm_id=None) -> None:
     else:
         robot_io = robot
     vr_controller = (
-        make_vr_controller(vr_config)
+        make_vr_controller(vr_config, **({"on_tracking": observer.on_tracking}
+                                       if observer is not None else {}))
         if session is None else session.hand_controller(arm_id)
     )
     arm_controller = FullBodyQPIKController(
@@ -409,6 +415,8 @@ def _run_arm(args, *, session=None, arm_id=None) -> None:
                 return
         arm_controller.start()
         arm_started = True
+        if observer is not None:
+            observer.on_ready()
         if session is not None:
             session.arm_ready(arm_id)
 
@@ -606,6 +614,10 @@ def _run_arm(args, *, session=None, arm_id=None) -> None:
             )
             if command_sent:
                 previous_command_send_finished_ns = send_finished_ns
+            if observer is not None:
+                # Optional recording is an observer of feedback and the final
+                # clamped action. It never replaces or resends robot commands.
+                observer.on_step(observation, sent_action, status, frame)
             if csv_logger is not None:
                 row = build_csv_row(status)
                 row.update(feedback_row)
@@ -658,6 +670,14 @@ def _run_arm(args, *, session=None, arm_id=None) -> None:
         raise
     finally:
         try:
+            if observer is not None:
+                # This is non-blocking: recording ends before exit motion.
+                # Camera/video cleanup belongs to the recording entry point,
+                # after the arm's existing shutdown procedure completes.
+                try:
+                    observer.on_stop()
+                except Exception:
+                    logger.exception("failed to stop runtime observer")
             try:
                 if arm_started:
                     arm_controller.stop()

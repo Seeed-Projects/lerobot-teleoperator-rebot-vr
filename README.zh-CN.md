@@ -110,7 +110,6 @@ rebot-vr-teleoperate-dual --config config/dual_rs_mit_split.yaml --startup-zero-
 rebot-vr-teleoperate-dual --config config/dual_rs_mit_split.yaml
 ```
 
-
 ## B601-DM 使用
 
 ### 单臂
@@ -149,7 +148,26 @@ rebot-vr-teleoperate-dual --config config/dual_mit_split.yaml
 | Trigger | 独立控制对应夹爪 |
 | 右 A／左 X | 对应臂返回初始姿态 |
 | 右 B／左 Y | 对应臂回零并闭合夹爪 |
+| 左菜单键 | 仅在录制程序中：开始／结束并保存一段示范 |
 | Ctrl+C | 正常运行时回零后退出；再次按下中止回零，不等同于硬件急停 |
+
+## 数据录制
+
+支持 **RS 单臂 + 主摄／腕摄两路 USB 摄像头**，以 **LeRobot v3** 格式保存图像、关节状态、动作及任务指令，默认 25 FPS。
+
+
+**左菜单键**开始／结束并保存，看到 `SAVED` 即完成。B 键回零不会中断录制；`Ctrl+C` 会丢弃未保存片段。
+
+数据保存在 `recordings/RS_任务名称_日期时间/`：`data/` 为关节状态、动作和时间戳（Parquet），`videos/` 为两路视频（MP4），`meta/` 为任务、机械臂信息、录制时间及统计数据。
+
+先在 [config/record_rs.yaml](config/record_rs.yaml) 中设置相机路径、CAN 端口和已标定的机械臂 ID，再在已激活的 LeRobot 环境、本项目根目录执行：
+
+```bash
+uv pip install -e '.[record]'
+rebot-vr-record --config config/record_rs.yaml --task "将绿色方块叠放到蓝色方块上"
+```
+
+
 
 ## 运行注意事项
 

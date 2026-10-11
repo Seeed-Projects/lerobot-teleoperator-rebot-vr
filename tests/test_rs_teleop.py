@@ -101,7 +101,7 @@ def test_rs_selection_does_not_change_dm_defaults_and_rejects_wrong_profiles():
     assert rs.initial_q == pytest.approx([0., .8, .8, 0., 0., 0.])
     assert not rs.rs_zero_confirmed and rs.gripper_enabled
     assert rs.disable_torque_on_disconnect
-    assert rs.exit_zero_tolerance_deg == .5
+    assert rs.exit_zero_tolerance_deg == 2.0
     with pytest.raises(SystemExit):
         parser.parse_args(["--robot-model", "b601_rs", "--motor-control-mode", "pos_vel"])
     with pytest.raises(SystemExit):

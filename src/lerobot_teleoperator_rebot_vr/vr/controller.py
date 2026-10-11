@@ -85,8 +85,9 @@ def _transform_pose(
 class XRoboToolkitV1Controller:
     """VRController adapter over the validated latest-only V1 source."""
 
-    def __init__(self, config: RebotVRConfig) -> None:
+    def __init__(self, config: RebotVRConfig, *, on_tracking=None) -> None:
         self.config = config
+        self._on_tracking = on_tracking
         self._source = V1TrackingSource(
             host=config.ws_host,
             port=config.ws_port,
@@ -146,6 +147,8 @@ class XRoboToolkitV1Controller:
         frame = self._tracking_to_frame(sample)
         with self._lock:
             self._latest = frame
+        if self._on_tracking is not None:
+            self._on_tracking(sample, _tracking)
 
     def _tracking_to_frame(self, sample: ControllerSample) -> VRFrame:
         transform = np.asarray(self.config.base_T_anchor, dtype=float)
@@ -171,8 +174,8 @@ class XRoboToolkitV1Controller:
         return age_ns <= int(self.config.stale_timeout * 1e9)
 
 
-def make_vr_controller(config: RebotVRConfig) -> VRController:
-    return XRoboToolkitV1Controller(config)
+def make_vr_controller(config: RebotVRConfig, *, on_tracking=None) -> VRController:
+    return XRoboToolkitV1Controller(config, on_tracking=on_tracking)
 
 
 __all__ = [

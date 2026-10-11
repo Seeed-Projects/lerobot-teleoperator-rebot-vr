@@ -1,0 +1,35 @@
+# Local-only LeRobot recording, independent from motion tuning.
+# Paths are relative to this YAML. Set task here or pass --task on the CLI.
+output_dir: ../recordings
+task: ""
+fps: 25
+queue_frames: 16
+max_camera_age_ms: 100.0
+max_camera_skew_ms: 50.0
+max_episode_s: 300.0
+# Exact field inside Tracking.Controller.left. Verify with --check-input.
+# If the sender does not transmit Menu, recording will not start.
+menu_field: menuButton
+teleoperation:
+  control_config: rs_mit_split.yaml
+  robot_port: can0
+  robot_id: rebot_b601_rs_left
+  hand: right
+cameras:
+  main:
+    device: /dev/video2
+    width: 640
+    height: 480
+    fps: 30
+    fourcc: MJPG
+  wrist:
+    device: /dev/v4l/by-id/usb-Generic_USB_HD_Camera_200910120001-video-index0
+    width: 640
+    height: 480
+    fps: 30
+    fourcc: MJPG
+    # This camera drops frames with a single V4L2 buffer. Capture continuously
+    # into four driver buffers; recording still selects the latest fresh frame.
+    buffer_size: 4
+    # Keep automatic exposure, but disallow its variable-frame-rate mode.
+    auto_exposure_priority: false

@@ -184,7 +184,7 @@ def runner(monkeypatch):
     monkeypatch.setattr(real.signal, "signal", lambda sig, handler: handlers.__setitem__(sig, handler))
     monkeypatch.setattr(real, "B601Kinematics", lambda *args: kinematics)
     monkeypatch.setattr(real, "FullBodyQPIKController", lambda *args, **kwargs: arm)
-    monkeypatch.setattr(real, "make_vr_controller", lambda *args: vr)
+    monkeypatch.setattr(real, "make_vr_controller", lambda *args, **kwargs: vr)
     monkeypatch.setattr(follower_module, "RebotB601Follower", make_robot)
     monkeypatch.setattr(real, "_move_to_zero_pose", zero_mock)
     return SimpleNamespace(args=args, events=events, handlers=handlers, arm=arm, status=status,
@@ -199,6 +199,19 @@ def test_normal_ctrl_c_stops_vr_then_returns_before_disconnect(runner):
     assert runner.events.count("disable_gripper") == 3
     runner.zero.assert_called_once()
     assert runner.robots[0].config.disable_torque_on_disconnect
+
+
+@pytest.mark.parametrize("observer_failure", [False, True])
+def test_recording_observer_stops_before_exit_zero_and_failure_preserves_shutdown(runner, observer_failure):
+    def ready():
+        if observer_failure:
+            raise OSError("injected observer failure")
+    observer = SimpleNamespace(on_tracking=lambda *args: None, on_ready=ready,
+        on_step=lambda *args: None, on_stop=lambda: runner.events.append("record_stop"))
+    real._run_arm(runner.args, observer=observer)
+    assert runner.events.index("record_stop") < runner.events.index("zero")
+    assert runner.events.index("zero") < runner.events.index("disable_shoulder_pan")
+    runner.zero.assert_called_once()
 
 
 def test_runtime_forwards_gripper_mit_gains(runner):

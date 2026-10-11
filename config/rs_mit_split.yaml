@@ -101,7 +101,7 @@ startup:
   - 0.0
   move_to_initial: true
   initial_move_tolerance_deg: 3.0
-  exit_zero_tolerance_deg: 0.5
+  exit_zero_tolerance_deg: 2.0
   initial_move_timeout: 30.0
   initial_stall_timeout: 5.0
   exit_zero_stall_timeout: null  # Inherit initial_stall_timeout.

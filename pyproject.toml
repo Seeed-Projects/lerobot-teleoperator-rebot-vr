@@ -13,7 +13,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 dependencies = [
-    "lerobot[rebot]>=0.6.0,<0.7.0",
+    # Declare our motor driver directly: LeRobot's rebot extra pins motorbridge
+    # below 0.4, while this plugin's RS support requires 0.5.3 or newer.
+    "lerobot>=0.6.0,<0.7.0",
     "motorbridge>=0.5.3,<1",
     "scipy>=1.14",
     "numpy",
@@ -24,12 +26,14 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8"]
 qp = ["osqp>=1.0,<2"]
+record = ["lerobot[dataset]>=0.6.2,<0.7.0", "opencv-python-headless>=4.10,<5"]
 
 [project.scripts]
 rebot-gripper-test = "lerobot_teleoperator_rebot_vr.tools.gripper_test:main"
 rebot-vr-print = "lerobot_teleoperator_rebot_vr.tools.print_vr_data:main"
 rebot-vr-teleoperate = "lerobot_teleoperator_rebot_vr.runtime.real:main"
 rebot-vr-teleoperate-dual = "lerobot_teleoperator_rebot_vr.runtime.dual:main"
+rebot-vr-record = "lerobot_teleoperator_rebot_vr.recording.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
