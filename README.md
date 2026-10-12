@@ -164,6 +164,8 @@ Set camera paths, CAN port, and the calibrated robot ID in [config/record_rs.yam
 uv pip install -e '.[record]'
 rebot-vr-record --config config/record_rs.yaml --task "Stack the green block on the blue block"
 ```
+Example Dataset: https://huggingface.co/datasets/Wangzhaowu/rebot_b601_rs_single_arm_block_stacking
+
 
 ## Operating Notes
 
