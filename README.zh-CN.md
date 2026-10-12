@@ -166,7 +166,7 @@ rebot-vr-teleoperate-dual --config config/dual_mit_split.yaml
 uv pip install -e '.[record]'
 rebot-vr-record --config config/record_rs.yaml --task "将绿色方块叠放到蓝色方块上"
 ```
-
+示例数据集：https://huggingface.co/datasets/Wangzhaowu/rebot_b601_rs_single_arm_block_stacking
 
 
 ## 运行注意事项
